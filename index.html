@@ -1,1 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Plywoods - Invoice & Billing System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #printableInvoice, #printableInvoice * {
+        visibility: visible !important;
+      }
+      #printableInvoice {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans antialiased flex flex-col">
 
+  <!-- Top Navigation & Brand Header -->
+  <header class="bg-amber-950 text-white shadow-lg sticky top-0 z-40 no-print border-b border-amber-800">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+      
+      <!-- Brand & Proprietor Info -->
+      <div class="flex items-center gap-3.5">
+        <!-- Golden Luxury G Emblem (Clean 2D Flat Vector) -->
+        <div class="w-12 h-12 rounded-xl bg-neutral-950 border border-amber-600/70 flex items-center justify-center p-1.5 shadow">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <!-- 2D Clean Golden G with Flat Layer Planks -->
+            <path d="M 50 12 A 38 38 0 1 0 85 54 L 66 54 L 66 46 L 86 46 A 38 38 0 0 0 50 12 Z" fill="#e5b84c" />
+            <!-- 2D Crisp Plywood Layers -->
+            <path d="M 26 59 L 50 71 L 74 59 L 74 63 L 50 75 L 26 63 Z" fill="#f3cf7a" />
+            <path d="M 30 65 L 50 75 L 70 65 L 70 69 L 50 79 L 30 69 Z" fill="#d9a438" />
+            <path d="M 35 71 L 50 79 L 65 71 L 65 75 L 50 83 L 35 75 Z" fill="#b88322" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black tracking-wider text-amber-200">GLOBAL PLYWOOD</h1>
+          <p class="text-xs text-amber-300 font-medium">
+            Proprietor: <span class="font-bold text-white">M Farooque</span> | Madhopur Barharia, Siwan, Bihar - 841232
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-2">
+        <button onclick="switchTab('billing')" id="tabBtn-billing" class="px-4 py-2 rounded-lg text-sm font-semibold bg-amber-700 text-white hover:bg-amber-600 transition shadow flex items-center gap-2">
+          <i class="fa-solid fa-file-invoice-dollar"></i> New Invoice
+        </button>
+        <button onclick="switchTab('stock')" id="tabBtn-stock" class="px-4 py-2 rounded-lg text-sm font-semibold bg-amber-900/60 text-amber-200 hover:bg-amber-800 transition shadow flex items-center gap-2">
+          <i class="fa-solid fa-cubes-stacked"></i> Available Stock
+        </button>
+        <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-4 py-2 rounded-lg text-sm font-semibold bg-amber-900/60 text-amber-200 hover:bg-amber-800 transition shadow flex items-center gap-2">
+          <i class="fa-solid fa-boxes-stacked"></i> Inventory & Items
+        </button>
+        <button onclick="switchTab('history')" id="tabBtn-history" class="px-4 py-2 rounded-lg text-sm font-semibold bg-amber-900/60 text-amber-200 hover:bg-amber-800 transition shadow flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left"></i> Invoice History
+        </button>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto p-4 md:p-6 flex-1 w-full">
+
+    <!-- ============================================================= -->
+    <!-- TAB 1: CREATE INVOICE (BILLING)                               -->
+    <!-- ============================================================= -->
+    <div id="tabContent-billing" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Panel: Billing Form (Interactive) -->
+      <div class="lg:col-span-7 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 no-print flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-5">
+            <h2 class="text-lg font-bold text-amber-950 flex items-center gap-2">
+              <i class="fa-solid fa-file-circle-plus text-amber-700"></i> Customer & Invoice Info
+            </h2>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-500 font-medium">Invoice No:</span>
+              <span id="formInvoiceNo" class="text-xs font-mono font-bold bg-amber-100 text-amber-900 px-2.5 py-1 rounded-md"></span>
+            </div>
+          </div>
+
+          <!-- Customer Data Fields -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Customer Name *</label>
+              <input type="text" id="custName" oninput="syncCustomerData()" placeholder="e.g., Rajesh Kumar" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-700">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Phone Number</label>
+              <input type="tel" id="custPhone" oninput="syncCustomerData()" placeholder="e.g., 9876543210" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-700">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Customer Address</label>
+              <input type="text" id="custAddress" oninput="syncCustomerData()" placeholder="e.g., Station Road, Barharia, Siwan" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-700">
+            </div>
+          </div>
+
+          <!-- Add Item Row Sub-Form -->
+          <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200 mb-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-3 flex items-center gap-1.5">
+              <i class="fa-solid fa-cart-plus text-amber-700"></i> Add Particulars / Item
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3">
+              <div class="md:col-span-6">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Select Item *</label>
+                <select id="itemPicker" onchange="onItemSelection()" class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+                  <option value="">-- Choose Item from Inventory --</option>
+                </select>
+              </div>
+              <div class="md:col-span-3">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Unit Price (₹) *</label>
+                <input type="number" id="itemRateInput" placeholder="0.00" class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+              </div>
+              <div class="md:col-span-3">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Quantity *</label>
+                <input type="number" id="itemQtyInput" value="1" min="0.01" step="any" class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span id="selectedItemUnitNotice" class="text-xs text-amber-800 font-medium"></span>
+                <span id="selectedItemStockBadge" class="hidden text-xs font-bold px-2 py-0.5 rounded-full"></span>
+              </div>
+              <button onclick="addItemToInvoice()" class="px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition shadow flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> Add Item Row
+              </button>
+            </div>
+          </div>
+
+          <!-- Staged Items Table Preview -->
+          <div class="overflow-x-auto border border-slate-200 rounded-xl mb-4">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                <tr>
+                  <th class="p-2.5">#</th>
+                  <th class="p-2.5">Particulars</th>
+                  <th class="p-2.5 text-center">Qty</th>
+                  <th class="p-2.5 text-right">Price (₹)</th>
+                  <th class="p-2.5 text-right">Total (₹)</th>
+                  <th class="p-2.5 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="stagedItemsTbody" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="6" class="p-4 text-center text-xs text-slate-400">No items added to invoice yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Discount & Calculation Controls -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Discount (₹ Flat)</label>
+              <input type="number" id="calcDiscount" value="0" min="0" oninput="calculateInvoiceTotals()" class="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tax / GST (%) Optional</label>
+              <input type="number" id="calcTaxPercent" value="0" min="0" max="28" oninput="calculateInvoiceTotals()" class="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-200">
+          <button onclick="resetInvoiceForm()" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-600 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition">
+            <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+          </button>
+          <button onclick="generateAndPrintInvoice()" class="flex-1 px-6 py-2.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold shadow-md transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-print"></i> Generate & Print / Save PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Panel: Live Clean A4 Invoice Layout -->
+      <div class="lg:col-span-5">
+        <div id="printableInvoice" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 text-slate-900 text-xs">
+          
+          <!-- Invoice Header -->
+          <div class="border-b-2 border-amber-950 pb-4 text-center">
+            <div class="flex items-center justify-center gap-3 mb-1">
+              <!-- Golden G Logo in Printable Invoice (Clean 2D) -->
+              <div class="w-12 h-12 rounded-xl bg-neutral-950 border border-amber-600 flex items-center justify-center p-1.5">
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                  <path d="M 50 12 A 38 38 0 1 0 85 54 L 66 54 L 66 46 L 86 46 A 38 38 0 0 0 50 12 Z" fill="#e5b84c" />
+                  <path d="M 26 59 L 50 71 L 74 59 L 74 63 L 50 75 L 26 63 Z" fill="#f3cf7a" />
+                  <path d="M 30 65 L 50 75 L 70 65 L 70 69 L 50 79 L 30 69 Z" fill="#d9a438" />
+                  <path d="M 35 71 L 50 79 L 65 71 L 65 75 L 50 83 L 35 75 Z" fill="#b88322" />
+                </svg>
+              </div>
+              <div class="text-left">
+                <h2 class="text-2xl font-black text-amber-950 tracking-wide uppercase leading-none">GLOBAL PLYWOOD</h2>
+                <p class="text-[9px] font-bold text-amber-800 tracking-[0.25em] uppercase mt-1">Strength • Quality • Trust</p>
+              </div>
+            </div>
+            <p class="text-[11px] font-bold text-amber-800 uppercase tracking-widest mt-1">Plywood • Block Boards • Laminates • Hardware</p>
+            <p class="text-xs font-bold text-slate-700 mt-1">Proprietor: <span class="font-extrabold text-slate-900">M Farooque</span></p>
+            <p class="text-[11px] text-slate-600">Madhopur Barharia, Siwan, Bihar - 841232</p>
+            <p class="text-xs font-semibold text-slate-800 mt-0.5"><i class="fa-solid fa-phone text-[10px] text-amber-900"></i> +91 8409169427</p>
+          </div>
+
+          <!-- Invoice Metadata & Customer Meta Bar -->
+          <div class="grid grid-cols-2 py-3 border-b border-slate-300 gap-3 text-[11px]">
+            <div>
+              <p><span class="text-slate-500 font-semibold">Invoice No:</span> <span id="previewInvNo" class="font-mono font-bold text-slate-900">GP-1001</span></p>
+              <p><span class="text-slate-500 font-semibold">Date:</span> <span id="previewDate" class="font-semibold text-slate-800"></span></p>
+            </div>
+            <div class="text-right">
+              <p class="font-bold text-slate-900 text-xs" id="previewCustName">Billed To: Cash Customer</p>
+              <p class="text-slate-600" id="previewCustPhone">Phone: -</p>
+              <p class="text-slate-600 truncate" id="previewCustAddress">Address: -</p>
+            </div>
+          </div>
+
+          <!-- Printable Items Table -->
+          <table class="w-full text-left text-xs my-3 border-collapse">
+            <thead>
+              <tr class="border-b-2 border-t border-slate-800 font-bold text-slate-800 uppercase text-[10px]">
+                <th class="py-1.5 w-7">#</th>
+                <th class="py-1.5">Particulars</th>
+                <th class="py-1.5 text-center w-12">Qty</th>
+                <th class="py-1.5 text-right w-16">Price (₹)</th>
+                <th class="py-1.5 text-right w-20">Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="previewItemsTbody" class="divide-y divide-slate-200">
+              <tr>
+                <td colspan="5" class="py-6 text-center text-slate-400 italic">Items added will appear here.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Financial Calculation Breakdown -->
+          <div class="border-t border-slate-300 pt-2 space-y-1 text-xs">
+            <div class="flex justify-between text-slate-600">
+              <span>Subtotal:</span>
+              <span id="previewSubtotal">₹0.00</span>
+            </div>
+            <div class="flex justify-between text-slate-600" id="previewDiscountRow">
+              <span>Discount:</span>
+              <span id="previewDiscount">- ₹0.00</span>
+            </div>
+            <div class="flex justify-between text-slate-600" id="previewTaxRow">
+              <span id="previewTaxLabel">Tax / GST (0%):</span>
+              <span id="previewTax">+ ₹0.00</span>
+            </div>
+            <div class="flex justify-between font-extrabold text-sm text-slate-950 border-t border-b-2 border-dashed border-slate-700 py-1.5 mt-1">
+              <span>Grand Total:</span>
+              <span id="previewGrandTotal" class="text-base text-amber-950 font-black">₹0.00</span>
+            </div>
+          </div>
+
+          <!-- Terms & Authorized Signatory Block -->
+          <div class="mt-8 pt-4 flex justify-between items-end text-[10px] text-slate-500">
+            <div>
+              <p class="font-bold text-slate-700">Terms & Conditions:</p>
+              <p>1. Goods once sold will not be taken back or exchanged.</p>
+              <p>2. Subject to Siwan jurisdiction only.</p>
+            </div>
+            <div class="text-center">
+              <div class="h-10"></div>
+              <p class="font-bold text-slate-900 border-t border-slate-700 px-3 pt-1">
+                For GLOBAL PLYWOODS<br>
+                <span class="text-[9px] font-normal text-slate-600">Authorised Signatory</span>
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- TAB 2: INVENTORY & ITEM MANAGEMENT                            -->
+    <!-- ============================================================= -->
+    <div id="tabContent-inventory" class="hidden no-print space-y-6">
+      
+      <!-- Add New Item Card -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold text-amber-950 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-amber-700"></i> Add New Product to Inventory
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+          <div class="md:col-span-4">
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Particulars / Item Name *</label>
+            <input type="text" id="newProdName" placeholder="e.g., Century 19mm Gurjan Plywood (8x4)" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Category / Unit *</label>
+            <select id="newProdUnit" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-amber-700 focus:outline-none">
+              <option value="Sheet">Sheet (8x4 / 7x4)</option>
+              <option value="Piece">Piece (Pcs)</option>
+              <option value="Sq.Ft">Sq.Ft</option>
+              <option value="Kg">Kg / Pack</option>
+              <option value="Pair">Pair</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Default Rate (₹) *</label>
+            <input type="number" id="newProdPrice" placeholder="e.g., 2450" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+          </div>
+          <div class="md:col-span-1">
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Initial Stock</label>
+            <input type="number" id="newProdStock" value="10" min="0" placeholder="0" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+          </div>
+          <div class="md:col-span-2">
+            <button onclick="saveNewProduct()" class="w-full py-2 bg-amber-800 hover:bg-amber-900 text-white font-semibold text-sm rounded-lg shadow transition">
+              <i class="fa-solid fa-floppy-disk mr-1"></i> Save Item
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory List Table -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Loaded Inventory Items</h3>
+            <p class="text-xs text-slate-500">Items available in quick drop-down during billing.</p>
+          </div>
+          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search item..." class="px-3.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-amber-950 text-amber-100 text-xs uppercase">
+              <tr>
+                <th class="p-3 w-12">#</th>
+                <th class="p-3">Item Name / Particulars</th>
+                <th class="p-3 text-center">Unit</th>
+                <th class="p-3 text-right">Default Rate (₹)</th>
+                <th class="p-3 text-center">Stock</th>
+                <th class="p-3 text-center w-24">Action</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- TAB 2.5: AVAILABLE STOCK CHECK TAB (NEW)                      -->
+    <!-- ============================================================= -->
+    <div id="tabContent-stock" class="hidden no-print space-y-6">
+
+      <!-- Summary Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-boxes-packing"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-semibold uppercase">Total Products</p>
+            <h3 id="statTotalItems" class="text-2xl font-black text-slate-900">0</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-semibold uppercase">Total In-Stock Qty</p>
+            <h3 id="statTotalQty" class="text-2xl font-black text-blue-900">0</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-semibold uppercase">Low Stock Alerts (&le; 5)</p>
+            <h3 id="statLowStock" class="text-2xl font-black text-rose-600">0</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-indian-rupee-sign"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-semibold uppercase">Total Stock Value</p>
+            <h3 id="statTotalValue" class="text-2xl font-black text-emerald-800">₹0</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Stock Table -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-warehouse text-amber-700"></i> Available Stock in Shop & Godown
+            </h3>
+            <p class="text-xs text-slate-500">Live stock updates automatically when invoices are generated.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="stockSearch" oninput="renderStockTable()" placeholder="Search stock item..." class="px-3.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-700 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900 text-amber-200 text-xs uppercase">
+              <tr>
+                <th class="p-3 w-12">#</th>
+                <th class="p-3">Particulars / Item Name</th>
+                <th class="p-3 text-center">Unit</th>
+                <th class="p-3 text-right">Rate (₹)</th>
+                <th class="p-3 text-center">Available Stock</th>
+                <th class="p-3 text-center">Status</th>
+                <th class="p-3 text-right">Stock Value (₹)</th>
+                <th class="p-3 text-center w-32">Quick Action</th>
+              </tr>
+            </thead>
+            <tbody id="stockTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- TAB 3: INVOICE HISTORY                                        -->
+    <!-- ============================================================= -->
+    <div id="tabContent-history" class="hidden no-print">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-amber-950 flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-amber-700"></i> Past Issued Invoices
+            </h2>
+            <p class="text-xs text-slate-500">List of all saved and printed customer invoices.</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-800 text-white text-xs uppercase">
+              <tr>
+                <th class="p-3 font-mono">Invoice #</th>
+                <th class="p-3">Date</th>
+                <th class="p-3">Customer Name</th>
+                <th class="p-3">Phone</th>
+                <th class="p-3 text-right">Grand Total (₹)</th>
+                <th class="p-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Application Script -->
+  <script>
+    // Initial Plywood & Hardware Item Presets with Stock
+    const defaultProducts = [
+      { id: 1, name: "Century 19mm Gurjan Plywood (8x4)", unit: "Sheet", price: 2650, stock: 45 },
+      { id: 2, name: "Greenply 12mm Marine Waterproof Ply (8x4)", unit: "Sheet", price: 1850, stock: 60 },
+      { id: 3, name: "Commercial Ply 6mm (8x4)", unit: "Sheet", price: 780, stock: 80 },
+      { id: 4, name: "Pine Block Board 19mm (8x4)", unit: "Sheet", price: 1950, stock: 35 },
+      { id: 5, name: "1mm Designer Mica / Laminate Sheet", unit: "Sheet", price: 1250, stock: 120 },
+      { id: 6, name: "Fevicol Marine Waterproof Adhesive (1 Kg)", unit: "Kg", price: 295, stock: 50 },
+      { id: 7, name: "Fevicol SH Synthetic Resin (5 Kg)", unit: "Kg", price: 1280, stock: 24 },
+      { id: 8, name: "Soft Close Auto Concealed Hinges (Pair)", unit: "Pair", price: 160, stock: 150 },
+      { id: 9, name: "Heavy Duty Drawer Telescopic Channel 18\"", unit: "Pair", price: 340, stock: 40 }
+    ];
+
+    // LocalStorage Keys
+    const STORAGE_KEY_PRODS = "gp_products_en_v1";
+    const STORAGE_KEY_BILLS = "gp_bills_en_v1";
+
+    let inventory = JSON.parse(localStorage.getItem(STORAGE_KEY_PRODS)) || defaultProducts;
+    
+    // Ensure every loaded product has a valid stock field
+    inventory = inventory.map(item => ({
+      ...item,
+      stock: (typeof item.stock === 'number') ? item.stock : 25
+    }));
+
+    let invoiceHistory = JSON.parse(localStorage.getItem(STORAGE_KEY_BILLS)) || [];
+    let currentInvoiceItems = [];
+
+    // Tab Navigation
+    window.switchTab = function(tabId) {
+      const billingTab = document.getElementById('tabContent-billing');
+      const invTab = document.getElementById('tabContent-inventory');
+      const stockTab = document.getElementById('tabContent-stock');
+      const historyTab = document.getElementById('tabContent-history');
+
+      if (billingTab) billingTab.classList.toggle('hidden', tabId !== 'billing');
+      if (invTab) invTab.classList.toggle('hidden', tabId !== 'inventory');
+      if (stockTab) stockTab.classList.toggle('hidden', tabId !== 'stock');
+      if (historyTab) historyTab.classList.toggle('hidden', tabId !== 'history');
+
+      ['billing', 'stock', 'inventory', 'history'].forEach(id => {
+        const btn = document.getElementById(`tabBtn-${id}`);
+        if (!btn) return;
+        if (id === tabId) {
+          btn.className = "px-4 py-2 rounded-lg text-sm font-semibold bg-amber-700 text-white transition shadow flex items-center gap-2";
+        } else {
+          btn.className = "px-4 py-2 rounded-lg text-sm font-semibold bg-amber-900/60 text-amber-200 hover:bg-amber-800 transition shadow flex items-center gap-2";
+        }
+      });
+
+      if (tabId === 'stock') {
+        renderStockTable();
+      }
+    };
+
+    // Generate Invoice Number
+    window.initNewInvoiceNumber = function() {
+      const nextNum = 1001 + invoiceHistory.length;
+      const invId = `GP-${nextNum}`;
+      const fInv = document.getElementById('formInvoiceNo');
+      const pInv = document.getElementById('previewInvNo');
+      if (fInv) fInv.textContent = invId;
+      if (pInv) pInv.textContent = invId;
+    };
+
+    window.updateInvoiceDateDisplay = function() {
+      const today = new Date().toLocaleDateString('en-GB', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      });
+      const pDate = document.getElementById('previewDate');
+      if (pDate) pDate.textContent = today;
+    };
+
+    // Populate Item Selector Dropdown
+    window.populateItemPicker = function() {
+      const picker = document.getElementById('itemPicker');
+      if (!picker) return;
+      picker.innerHTML = '<option value="">-- Choose Item from Inventory --</option>';
+      inventory.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = `${item.name} [₹${item.price} / ${item.unit}] (Stock: ${item.stock})`;
+        picker.appendChild(opt);
+      });
+    };
+
+    window.onItemSelection = function() {
+      const id = document.getElementById('itemPicker').value;
+      const found = inventory.find(p => p.id == id);
+      const notice = document.getElementById('selectedItemUnitNotice');
+      const badge = document.getElementById('selectedItemStockBadge');
+
+      if (found) {
+        document.getElementById('itemRateInput').value = found.price;
+        if (notice) notice.textContent = `Unit: ${found.unit} | Available Stock: ${found.stock}`;
+        
+        if (badge) {
+          badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-amber-100', 'text-amber-800', 'bg-rose-100', 'text-rose-800');
+          if (found.stock > 10) {
+            badge.className = "text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+            badge.textContent = `In Stock: ${found.stock} ${found.unit}`;
+          } else if (found.stock > 0) {
+            badge.className = "text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800";
+            badge.textContent = `Low Stock: ${found.stock} ${found.unit}`;
+          } else {
+            badge.className = "text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800";
+            badge.textContent = `Out of Stock`;
+          }
+        }
+      } else {
+        document.getElementById('itemRateInput').value = '';
+        if (notice) notice.textContent = '';
+        if (badge) badge.classList.add('hidden');
+      }
+    };
+
+    // Sync Customer Details Live
+    window.syncCustomerData = function() {
+      const name = document.getElementById('custName').value.trim() || "Cash Customer";
+      const phone = document.getElementById('custPhone').value.trim() || "-";
+      const address = document.getElementById('custAddress').value.trim() || "-";
+
+      const pName = document.getElementById('previewCustName');
+      const pPhone = document.getElementById('previewCustPhone');
+      const pAddr = document.getElementById('previewCustAddress');
+
+      if (pName) pName.textContent = `Billed To: ${name}`;
+      if (pPhone) pPhone.textContent = `Phone: ${phone}`;
+      if (pAddr) pAddr.textContent = `Address: ${address}`;
+    };
+
+    // Add Item Row to Current Invoice
+    window.addItemToInvoice = function() {
+      const itemId = document.getElementById('itemPicker').value;
+      const rate = parseFloat(document.getElementById('itemRateInput').value);
+      const qty = parseFloat(document.getElementById('itemQtyInput').value);
+
+      if (!itemId || isNaN(rate) || isNaN(qty) || qty <= 0) {
+        alert("Please pick an item and enter valid rate and quantity.");
+        return;
+      }
+
+      const prod = inventory.find(p => p.id == itemId);
+
+      // Warning if billing exceeds stock
+      if (qty > prod.stock) {
+        const proceed = confirm(`Warning: You are billing ${qty} ${prod.unit}, but only ${prod.stock} is currently available in stock. Do you still want to proceed?`);
+        if (!proceed) return;
+      }
+
+      const total = rate * qty;
+
+      currentInvoiceItems.push({
+        id: prod.id,
+        name: prod.name,
+        unit: prod.unit,
+        price: rate,
+        qty: qty,
+        total: total
+      });
+
+      // Reset item inputs
+      document.getElementById('itemPicker').value = '';
+      document.getElementById('itemRateInput').value = '';
+      document.getElementById('itemQtyInput').value = '1';
+      const notice = document.getElementById('selectedItemUnitNotice');
+      const badge = document.getElementById('selectedItemStockBadge');
+      if (notice) notice.textContent = '';
+      if (badge) badge.classList.add('hidden');
+
+      renderStagedItems();
+      calculateInvoiceTotals();
+    };
+
+    window.removeInvoiceItem = function(index) {
+      currentInvoiceItems.splice(index, 1);
+      renderStagedItems();
+      calculateInvoiceTotals();
+    };
+
+    window.renderStagedItems = function() {
+      const tbody = document.getElementById('stagedItemsTbody');
+      if (!tbody) return;
+      if (currentInvoiceItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">No items added to invoice yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = currentInvoiceItems.map((item, idx) => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-2.5 font-medium text-slate-500">${idx + 1}</td>
+          <td class="p-2.5 font-semibold text-slate-800">${item.name}</td>
+          <td class="p-2.5 text-center font-bold text-slate-700">${item.qty} <span class="text-[10px] text-slate-500 font-normal">${item.unit}</span></td>
+          <td class="p-2.5 text-right font-medium">₹${item.price.toFixed(2)}</td>
+          <td class="p-2.5 text-right font-bold text-amber-900">₹${item.total.toFixed(2)}</td>
+          <td class="p-2.5 text-center">
+            <button onclick="removeInvoiceItem(${idx})" class="text-rose-600 hover:text-rose-800 p-1">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    };
+
+    // Financial Calculation Logic
+    window.calculateInvoiceTotals = function() {
+      const previewTbody = document.getElementById('previewItemsTbody');
+      if (!previewTbody) return;
+
+      if (currentInvoiceItems.length === 0) {
+        previewTbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 italic">Items added will appear here.</td></tr>`;
+        document.getElementById('previewSubtotal').textContent = "₹0.00";
+        document.getElementById('previewGrandTotal').textContent = "₹0.00";
+        return;
+      }
+
+      let subtotal = 0;
+      previewTbody.innerHTML = currentInvoiceItems.map((item, idx) => {
+        subtotal += item.total;
+        return `
+          <tr class="border-b border-slate-100">
+            <td class="py-1 text-slate-500">${idx + 1}</td>
+            <td class="py-1 font-semibold text-slate-900">${item.name}</td>
+            <td class="py-1 text-center font-bold">${item.qty}</td>
+            <td class="py-1 text-right">₹${item.price.toFixed(2)}</td>
+            <td class="py-1 text-right font-bold text-slate-900">₹${item.total.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const discount = parseFloat(document.getElementById('calcDiscount').value) || 0;
+      const taxPercent = parseFloat(document.getElementById('calcTaxPercent').value) || 0;
+
+      const taxableAmount = Math.max(0, subtotal - discount);
+      const taxAmount = (taxableAmount * taxPercent) / 100;
+      const grandTotal = taxableAmount + taxAmount;
+
+      document.getElementById('previewSubtotal').textContent = `₹${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      document.getElementById('previewDiscount').textContent = `- ₹${discount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      document.getElementById('previewTaxLabel').textContent = `Tax / GST (${taxPercent}%):`;
+      document.getElementById('previewTax').textContent = `+ ₹${taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      document.getElementById('previewGrandTotal').textContent = `₹${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    };
+
+    // Generate, Save, Deduct Stock & Trigger Print
+    window.generateAndPrintInvoice = function() {
+      if (currentInvoiceItems.length === 0) {
+        alert("Please add at least one item row to generate an invoice.");
+        return;
+      }
+
+      const invNo = document.getElementById('formInvoiceNo').textContent;
+      const custName = document.getElementById('custName').value.trim() || "Cash Customer";
+      const custPhone = document.getElementById('custPhone').value.trim() || "-";
+      const custAddress = document.getElementById('custAddress').value.trim() || "-";
+
+      const subtotal = currentInvoiceItems.reduce((acc, i) => acc + i.total, 0);
+      const discount = parseFloat(document.getElementById('calcDiscount').value) || 0;
+      const taxPercent = parseFloat(document.getElementById('calcTaxPercent').value) || 0;
+      const grandTotal = Math.max(0, subtotal - discount) + ((Math.max(0, subtotal - discount) * taxPercent) / 100);
+
+      // Automatically deduct quantities from stock
+      currentInvoiceItems.forEach(billedItem => {
+        const prod = inventory.find(p => p.id == billedItem.id);
+        if (prod) {
+          prod.stock = Math.max(0, prod.stock - billedItem.qty);
+        }
+      });
+      localStorage.setItem(STORAGE_KEY_PRODS, JSON.stringify(inventory));
+      populateItemPicker();
+      renderInventoryTable();
+      renderStockTable();
+
+      const savedRecord = {
+        invoiceNo: invNo,
+        date: document.getElementById('previewDate').textContent,
+        customerName: custName,
+        phone: custPhone,
+        address: custAddress,
+        items: [...currentInvoiceItems],
+        subtotal: subtotal,
+        discount: discount,
+        taxPercent: taxPercent,
+        grandTotal: grandTotal
+      };
+
+      invoiceHistory.unshift(savedRecord);
+      localStorage.setItem(STORAGE_KEY_BILLS, JSON.stringify(invoiceHistory));
+      renderHistoryTable();
+
+      // Trigger browser print to allow saving as clean PDF
+      window.print();
+    };
+
+    window.resetInvoiceForm = function() {
+      if (confirm("Reset current invoice form?")) {
+        currentInvoiceItems = [];
+        document.getElementById('custName').value = '';
+        document.getElementById('custPhone').value = '';
+        document.getElementById('custAddress').value = '';
+        document.getElementById('calcDiscount').value = '0';
+        document.getElementById('calcTaxPercent').value = '0';
+        syncCustomerData();
+        renderStagedItems();
+        calculateInvoiceTotals();
+        initNewInvoiceNumber();
+      }
+    };
+
+    // =============================================================
+    // INVENTORY MANAGEMENT LOGIC
+    // =============================================================
+    function saveNewProduct() {
+      const name = document.getElementById('newProdName').value.trim();
+      const unit = document.getElementById('newProdUnit').value;
+      const price = parseFloat(document.getElementById('newProdPrice').value);
+      const stock = parseFloat(document.getElementById('newProdStock').value) || 0;
+
+      if (!name || isNaN(price) || price < 0) {
+        alert("Please provide a valid product name and price.");
+        return;
+      }
+
+      const newProduct = {
+        id: Date.now(),
+        name: name,
+        unit: unit,
+        price: price,
+        stock: stock
+      };
+
+      inventory.push(newProduct);
+      localStorage.setItem(STORAGE_KEY_PRODS, JSON.stringify(inventory));
+
+      document.getElementById('newProdName').value = '';
+      document.getElementById('newProdPrice').value = '';
+      document.getElementById('newProdStock').value = '10';
+
+      populateItemPicker();
+      renderInventoryTable();
+      renderStockTable();
+    }
+    window.saveNewProduct = saveNewProduct;
+
+    function deleteProduct(id) {
+      if (confirm("Remove this item from inventory?")) {
+        inventory = inventory.filter(p => p.id !== id);
+        localStorage.setItem(STORAGE_KEY_PRODS, JSON.stringify(inventory));
+        populateItemPicker();
+        renderInventoryTable();
+        renderStockTable();
+      }
+    }
+    window.deleteProduct = deleteProduct;
+
+    function renderInventoryTable() {
+      const q = (document.getElementById('inventorySearch')?.value || '').toLowerCase();
+      const tbody = document.getElementById('inventoryTableBody');
+      if (!tbody) return;
+      const filtered = inventory.filter(p => p.name.toLowerCase().includes(q));
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">No matching products found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((item, idx) => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 text-slate-500 font-medium">${idx + 1}</td>
+          <td class="p-3 font-semibold text-slate-800">${item.name}</td>
+          <td class="p-3 text-center"><span class="bg-amber-100 text-amber-900 text-xs px-2 py-0.5 rounded font-medium">${item.unit}</span></td>
+          <td class="p-3 text-right font-bold text-amber-950">₹${item.price.toFixed(2)}</td>
+          <td class="p-3 text-center font-bold ${item.stock <= 5 ? 'text-rose-600' : 'text-slate-800'}">${item.stock} ${item.unit}</td>
+          <td class="p-3 text-center">
+            <button onclick="deleteProduct(${item.id})" class="text-rose-600 hover:text-rose-800 text-xs px-2 py-1 font-medium">
+              <i class="fa-solid fa-trash-can mr-1"></i> Delete
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+    window.renderInventoryTable = renderInventoryTable;
+
+    // =============================================================
+    // AVAILABLE STOCK MANAGEMENT & CHECK LOGIC (NEW)
+    // =============================================================
+    function renderStockTable() {
+      const q = (document.getElementById('stockSearch')?.value || '').toLowerCase();
+      const tbody = document.getElementById('stockTableBody');
+      if (!tbody) return;
+
+      const filtered = inventory.filter(p => p.name.toLowerCase().includes(q));
+
+      // Calculate Summary Metrics
+      let totalQty = 0;
+      let lowStockCount = 0;
+      let totalValue = 0;
+
+      inventory.forEach(item => {
+        totalQty += (item.stock || 0);
+        if ((item.stock || 0) <= 5) lowStockCount++;
+        totalValue += ((item.stock || 0) * (item.price || 0));
+      });
+
+      const elTotalItems = document.getElementById('statTotalItems');
+      const elTotalQty = document.getElementById('statTotalQty');
+      const elLowStock = document.getElementById('statLowStock');
+      const elTotalVal = document.getElementById('statTotalValue');
+
+      if (elTotalItems) elTotalItems.textContent = inventory.length;
+      if (elTotalQty) elTotalQty.textContent = totalQty.toLocaleString();
+      if (elLowStock) elLowStock.textContent = lowStockCount;
+      if (elTotalVal) elTotalVal.textContent = `₹${totalValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-xs text-slate-400">No matching stock items found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((item, idx) => {
+        const itemVal = (item.stock || 0) * item.price;
+        let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        let statusText = "In Stock";
+
+        if (item.stock === 0) {
+          badgeClass = "bg-rose-100 text-rose-800 border-rose-300";
+          statusText = "Out of Stock";
+        } else if (item.stock <= 5) {
+          badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+          statusText = "Low Stock";
+        }
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 text-slate-500 font-medium">${idx + 1}</td>
+            <td class="p-3 font-semibold text-slate-900">${item.name}</td>
+            <td class="p-3 text-center"><span class="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded">${item.unit}</span></td>
+            <td class="p-3 text-right font-medium text-slate-700">₹${item.price.toFixed(2)}</td>
+            <td class="p-3 text-center">
+              <span class="text-base font-black ${item.stock <= 5 ? 'text-rose-600' : 'text-slate-900'}">${item.stock}</span>
+              <span class="text-xs text-slate-500"> ${item.unit}</span>
+            </td>
+            <td class="p-3 text-center">
+              <span class="px-2.5 py-1 text-xs font-bold rounded-full border ${badgeClass}">${statusText}</span>
+            </td>
+            <td class="p-3 text-right font-bold text-amber-950">₹${itemVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td class="p-3 text-center">
+              <button onclick="quickUpdateStock(${item.id})" class="px-3 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded text-xs font-semibold shadow transition">
+                <i class="fa-solid fa-pen-to-square mr-1"></i> Update
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+    window.renderStockTable = renderStockTable;
+
+    function quickUpdateStock(id) {
+      const prod = inventory.find(p => p.id == id);
+      if (!prod) return;
+
+      const newStockStr = prompt(`Update stock for:\n${prod.name}\n\nCurrent Stock: ${prod.stock} ${prod.unit}\n\nEnter new stock quantity:`, prod.stock);
+      if (newStockStr === null) return;
+
+      const newStock = parseFloat(newStockStr);
+      if (isNaN(newStock) || newStock < 0) {
+        alert("Please enter a valid stock number (0 or higher).");
+        return;
+      }
+
+      prod.stock = newStock;
+      localStorage.setItem(STORAGE_KEY_PRODS, JSON.stringify(inventory));
+      renderStockTable();
+      renderInventoryTable();
+      populateItemPicker();
+    }
+    window.quickUpdateStock = quickUpdateStock;
+
+    // =============================================================
+    // INVOICE HISTORY LOGIC
+    // =============================================================
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyTableBody');
+      if (!tbody) return;
+      if (invoiceHistory.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">No past invoices found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = invoiceHistory.map(inv => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-mono font-bold text-amber-950">${inv.invoiceNo}</td>
+          <td class="p-3 text-slate-600">${inv.date}</td>
+          <td class="p-3 font-semibold text-slate-800">${inv.customerName}</td>
+          <td class="p-3 text-slate-600">${inv.phone}</td>
+          <td class="p-3 text-right font-bold text-emerald-800">₹${inv.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td class="p-3 text-center">
+            <button onclick="reprintPastInvoice('${inv.invoiceNo}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-1 rounded text-xs font-semibold transition">
+              <i class="fa-solid fa-print mr-1"></i> Print
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+    window.renderHistoryTable = renderHistoryTable;
+
+    function reprintPastInvoice(invNo) {
+      const inv = invoiceHistory.find(b => b.invoiceNo === invNo);
+      if (!inv) return;
+
+      currentInvoiceItems = [...inv.items];
+      document.getElementById('custName').value = inv.customerName;
+      document.getElementById('custPhone').value = inv.phone === '-' ? '' : inv.phone;
+      document.getElementById('custAddress').value = inv.address === '-' ? '' : inv.address;
+      document.getElementById('calcDiscount').value = inv.discount || 0;
+      document.getElementById('calcTaxPercent').value = inv.taxPercent || 0;
+
+      document.getElementById('formInvoiceNo').textContent = inv.invoiceNo;
+      document.getElementById('previewInvNo').textContent = inv.invoiceNo;
+      document.getElementById('previewDate').textContent = inv.date;
+
+      syncCustomerData();
+      renderStagedItems();
+      calculateInvoiceTotals();
+      switchTab('billing');
+      window.print();
+    }
+    window.reprintPastInvoice = reprintPastInvoice;
+
+    // App Initialization
+    window.addEventListener("DOMContentLoaded", () => {
+      populateItemPicker();
+      renderInventoryTable();
+      renderStockTable();
+      renderHistoryTable();
+      initNewInvoiceNumber();
+      updateInvoiceDateDisplay();
+      calculateInvoiceTotals();
+    });
+  </script>
+</body>
+</html>
